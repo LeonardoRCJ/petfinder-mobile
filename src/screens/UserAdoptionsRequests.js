@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -14,8 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import decodeJWT from "../services/decodeJWT";
 
-const AdoptionRequestsScreen = () => {
+const UserAdoptionsRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -24,7 +26,6 @@ const AdoptionRequestsScreen = () => {
 
   const navigation = useNavigation();
 
- 
   useEffect(() => {
     fetchAdoptionRequests();
   }, []);
@@ -33,9 +34,10 @@ const AdoptionRequestsScreen = () => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
+      const decoded = decodeJWT(token);
 
       const response = await fetch(
-        "https://petfinder-l00r.onrender.com/adoptions",
+        `https://petfinder-l00r.onrender.com/adoptions/${decoded.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -50,47 +52,6 @@ const AdoptionRequestsScreen = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  const handleAdoptionStatusUpdate = async (newStatus) => {
-    if (!selectedRequest) return;
-
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      const response = await fetch(
-        `https://petfinder-l00r.onrender.com/adoptions/${selectedRequest.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erro ao atualizar status");
-      }
-
-      const data = await response.json();
-
-      fetchAdoptionRequests();
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-    }
-  };
-
-  const handleAdoptionStatusApproved = () =>
-    handleAdoptionStatusUpdate("APPROVED");
-  const handleAdoptionStatusRejected = () =>
-    handleAdoptionStatusUpdate("REJECTED");
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchAdoptionRequests();
   };
 
   const getStatusColor = (status) => {
@@ -112,6 +73,34 @@ const AdoptionRequestsScreen = () => {
         return "Rejeitado";
       default:
         return "Pendente";
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchAdoptionRequests();
+  };
+
+  const handleCancelAdoption = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const response = await fetch(
+        `https://petfinder-l00r.onrender.com/adoptions/${selectedRequest.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      Alert.alert("Sucesso", "Solicitação de adoção cancelada com sucesso!");
+      fetchAdoptionRequests();
+      setModalVisible(false)
+    } catch (error) {
+      console.error("Erro ao cancelar solicitação:", error);
+      Alert.alert("Erro", error.message);
     }
   };
 
@@ -164,7 +153,7 @@ const AdoptionRequestsScreen = () => {
           <Ionicons name="arrow-back" size={24} color="#FF6B00" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Adoções</Text>
-        <View style={{ width: 24 }} /> 
+        <View style={{ width: 24 }} />
       </View>
       <View style={styles.contentHeader}>
         <Ionicons name="list-outline" size={28} color="#003366" />
@@ -303,7 +292,6 @@ const AdoptionRequestsScreen = () => {
                         {selectedRequest.formResponse.castrados}
                       </Text>
                     )}
-                    {/* Adicionar mais campos conforme necessário */}
                   </View>
                 </View>
 
@@ -313,20 +301,12 @@ const AdoptionRequestsScreen = () => {
                     {new Date(selectedRequest.createdAt).toLocaleDateString()}
                   </Text>
                 </View>
-
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.rejectButton]}
-                    onPress={() => handleAdoptionStatusUpdate("REJECTED")}
+                    onPress={handleCancelAdoption}
                   >
-                    <Text style={styles.buttonText}>Rejeitar</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.approveButton]}
-                    onPress={() => handleAdoptionStatusUpdate("APPROVED")}
-                  >
-                    <Text style={styles.buttonText}>Aprovar</Text>
+                    <Text style={styles.buttonText}>Cancelar</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -434,7 +414,6 @@ const styles = StyleSheet.create({
     color: "#666",
     marginLeft: 8,
   },
-  // Modal styles
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -542,16 +521,17 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
-  },header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     paddingTop: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderBottomColor: "#E5E7EB",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -562,9 +542,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
   },
 });
 
-export default AdoptionRequestsScreen;
+export default UserAdoptionsRequests;

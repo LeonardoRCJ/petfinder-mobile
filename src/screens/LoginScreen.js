@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
+import decodeJWT from '../services/decodeJWT';
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
@@ -45,10 +46,13 @@ export default function LoginScreen() {
         setEmail('');
         setPassword('');
 
+        const decodedToken = decodeJWT(data.token);
+        const isAdmin = decodedToken.role === 'ADMIN'
+
         Alert.alert('Sucesso', 'Login realizado com sucesso!', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Feed'),
+            onPress: () => navigation.navigate(isAdmin ? 'AdminFeed': 'UserFeed'),
           },
         ]);
       } else {

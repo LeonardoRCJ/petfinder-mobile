@@ -53,7 +53,7 @@ const AboutScreen = () => {
 
           <TouchableOpacity 
             style={styles.button} 
-            onPress={() => navigation.navigate('Feed')}
+            onPress={() => navigation.navigate('UserFeed')}
             activeOpacity={0.8}>
             <Text style={styles.buttonText}>Quero adotar</Text>
             <Ionicons name="paw" size={18} color="#FFF" style={styles.buttonIcon} />

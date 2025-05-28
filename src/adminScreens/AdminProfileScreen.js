@@ -2,19 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import decodeJWT from '../services/decodeJWT';
 
-export default function ProfileScreen({ navigation }) {
+export default function AdminProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -40,7 +40,7 @@ export default function ProfileScreen({ navigation }) {
         setUser(data);
         setName(data.name);
         setPhone(data.phone);
-        setEmail(data.email)
+        setEmail(data.email);
         setCpf(data.cpf);
       } catch (err) {
         console.error('Erro ao carregar perfil', err);
@@ -109,19 +109,26 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="arrow-back" size={24} color="#FF6B00" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Meu Perfil</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 24 }} /> 
         </View>
 
-
+        {/* Avatar Section */}
         <View style={styles.avatarContainer}>
           <Image
             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text>
+          
+          {editing && (
+            <TouchableOpacity style={styles.changePhotoButton}>
+              <Ionicons name="camera" size={18} color="#FFF" />
+              <Text style={styles.changePhotoText}>Alterar foto</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-
+        {/* Form Section */}
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Nome completo</Text>
@@ -163,6 +170,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Action Buttons */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity 
             style={[styles.button, editing ? styles.cancelButton : styles.editButton]}

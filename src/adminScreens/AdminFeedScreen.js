@@ -2,21 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useContext, useEffect, useLayoutEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 
-const FeedScreen = () => {
+const AdminFeedScreen = () => {
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
 
@@ -71,8 +71,6 @@ const FeedScreen = () => {
     setSelectedPet(pet);
     setShowAdoptModal(true);
   };
-
-  
 
   const renderPetItem = ({ item }) => (
     <View style={styles.petCard}>
@@ -131,8 +129,7 @@ const FeedScreen = () => {
         
         <View style={styles.headerContent}>
           <Text style={styles.headerSubtitle}>Bem-vindo de volta</Text>
-          <Text style={styles.headerTitle}>Aumigo!
-          </Text>
+          <Text style={styles.headerTitle}>Administrador</Text>
         </View>
         
         <TouchableOpacity 
@@ -165,32 +162,42 @@ const FeedScreen = () => {
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  navigation.navigate('Profile');
+                  navigation.navigate('ViewAllUsers');
                   setShowMenu(false);
                 }}>
-                <Ionicons name="person" size={20} color="#FF6B00" />
-                <Text style={styles.menuItemText}>Meu Perfil</Text>
-              </TouchableOpacity>
-               <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  navigation.navigate('MyAdoptionsRequests');
-                  setShowMenu(false);
-                }}>
-                <Ionicons name="alert" size={20} color="#FF6B00" />
-                <Text style={styles.menuItemText}>Minhas Solicitações</Text>
+                <Ionicons name="people" size={20} color="#FF6B00" />
+                <Text style={styles.menuItemText}>Usuários</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  navigation.navigate('About');
+                  navigation.navigate('AdminProfile');
                   setShowMenu(false);
                 }}>
-                <Ionicons name="information-circle" size={20} color="#FF6B00" />
-                <Text style={styles.menuItemText}>Sobre Nós</Text>
+                <Ionicons name="person" size={20} color="#FF6B00" />
+                <Text style={styles.menuItemText}>Meu Perfil</Text>
               </TouchableOpacity>
-             
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  navigation.navigate('ViewAllPets');
+                  setShowMenu(false);
+                }}>
+                <Ionicons name="paw" size={20} color="#FF6B00" />
+                <Text style={styles.menuItemText}>Cadastro</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  navigation.navigate('AdoptionRequests');
+                  setShowMenu(false);
+                }}>
+                <Ionicons name="people" size={20} color="#FF6B00" />
+                <Text style={styles.menuItemText}>Solicitações de Adoção</Text>
+              </TouchableOpacity>
+
             </ScrollView>
             
             <TouchableOpacity
@@ -688,4 +695,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FeedScreen;
+export default AdminFeedScreen;
