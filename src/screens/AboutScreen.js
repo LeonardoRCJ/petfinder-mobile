@@ -16,10 +16,9 @@ const AboutScreen = () => {
             <Ionicons name="arrow-back" size={24} color="#FF6B00" />
           </TouchableOpacity>
           <Text style={styles.title}>Sobre Nós</Text>
-          <View style={{ width: 24 }} /> {/* Espaço para alinhamento */}
+          <View style={{ width: 24 }} /> 
         </View>
 
-        {/* Conteúdo */}
         <View style={styles.content}>
           <View style={styles.imageContainer}>
             <Image

@@ -1,5 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -10,8 +12,8 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
-} from 'react-native';
+    View,
+} from "react-native";
 
 const AdoptionRequestsScreen = () => {
   const [requests, setRequests] = useState([]);
@@ -19,6 +21,8 @@ const AdoptionRequestsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const navigation = useNavigation();
 
   // Simulação de fetch dos dados
   useEffect(() => {
@@ -28,16 +32,61 @@ const AdoptionRequestsScreen = () => {
   const fetchAdoptionRequests = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://petfinder-l00r.onrender.com/adoptions')
+      const token = await AsyncStorage.getItem("token");
 
-      setRequests(mockData);
+      const response = await fetch(
+        "https://petfinder-l00r.onrender.com/adoptions",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      setRequests(data);
     } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
+      console.error("Erro ao carregar pedidos:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
+
+  const handleAdoptionStatusUpdate = async (newStatus) => {
+    if (!selectedRequest) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const response = await fetch(
+        `https://petfinder-l00r.onrender.com/adoptions/${selectedRequest.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar status");
+      }
+
+      const data = await response.json();
+
+      fetchAdoptionRequests();
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+    }
+  };
+
+  const handleAdoptionStatusApproved = () =>
+    handleAdoptionStatusUpdate("APPROVED");
+  const handleAdoptionStatusRejected = () =>
+    handleAdoptionStatusUpdate("REJECTED");
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -46,28 +95,28 @@ const AdoptionRequestsScreen = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'APPROVED':
-        return '#4CAF50'; // Verde
-      case 'REJECTED':
-        return '#F44336'; // Vermelho
+      case "APPROVED":
+        return "#4CAF50"; // Verde
+      case "REJECTED":
+        return "#F44336"; // Vermelho
       default:
-        return '#FFA500'; // Laranja
+        return "#FFA500"; // Laranja
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'APPROVED':
-        return 'Aprovado';
-      case 'REJECTED':
-        return 'Rejeitado';
+      case "APPROVED":
+        return "Aprovado";
+      case "REJECTED":
+        return "Rejeitado";
       default:
-        return 'Pendente';
+        return "Pendente";
     }
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.card}
       onPress={() => {
         setSelectedRequest(item);
@@ -75,15 +124,17 @@ const AdoptionRequestsScreen = () => {
       }}
     >
       <View style={styles.cardHeader}>
-        <Image 
-          source={{ uri: item.pet.image }} 
-          style={styles.petImage}
-        />
+        <Image source={{ uri: item.pet.image_url }} style={styles.petImage} />
         <View style={styles.cardHeaderInfo}>
-          <Text style={styles.petName}>{item.pet.name}</Text>
-          <Text style={styles.petType}>{item.pet.type}</Text>
+          <Text style={styles.petName}>{item.pet.petname}</Text>
+          <Text style={styles.petType}>{item.pet.specie}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor(item.status) },
+          ]}
+        >
           <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
         </View>
       </View>
@@ -106,8 +157,18 @@ const AdoptionRequestsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FF6B00" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Adoções</Text>
+        <View style={{ width: 24 }} /> 
+      </View>
+      <View style={styles.contentHeader}>
         <Ionicons name="list-outline" size={28} color="#003366" />
-        <Text style={styles.headerText}>Pedidos de Adoção</Text>
+        <Text style={styles.ContentHeaderText}>Pedidos de Adoção</Text>
       </View>
 
       {loading ? (
@@ -124,7 +185,7 @@ const AdoptionRequestsScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={['#ff6600']}
+              colors={["#ff6600"]}
               tintColor="#ff6600"
             />
           }
@@ -156,37 +217,90 @@ const AdoptionRequestsScreen = () => {
                 </View>
 
                 <View style={styles.petInfo}>
-                  <Image 
-                    source={{ uri: selectedRequest.pet.image }} 
+                  <Image
+                    source={{ uri: selectedRequest.pet.image_url }}
                     style={styles.modalPetImage}
                   />
                   <View>
-                    <Text style={styles.modalPetName}>{selectedRequest.pet.name}</Text>
-                    <Text style={styles.modalPetType}>{selectedRequest.pet.type}</Text>
-                    <View style={[styles.modalStatusBadge, { backgroundColor: getStatusColor(selectedRequest.status) }]}>
-                      <Text style={styles.modalStatusText}>{getStatusText(selectedRequest.status)}</Text>
+                    <Text style={styles.modalPetName}>
+                      {selectedRequest.pet.petname}
+                    </Text>
+                    <Text style={styles.modalPetType}>
+                      {selectedRequest.pet.specie}
+                    </Text>
+                    <View
+                      style={[
+                        styles.modalStatusBadge,
+                        {
+                          backgroundColor: getStatusColor(
+                            selectedRequest.status
+                          ),
+                        },
+                      ]}
+                    >
+                      <Text style={styles.modalStatusText}>
+                        {getStatusText(selectedRequest.status)}
+                      </Text>
                     </View>
                   </View>
                 </View>
 
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Solicitante</Text>
-                  <Text style={styles.detailText}>{selectedRequest.user.name}</Text>
-                  <Text style={styles.detailText}>{selectedRequest.user.email}</Text>
+                  <Text style={styles.detailText}>
+                    {selectedRequest.user.name}
+                  </Text>
+                  <Text style={styles.detailText}>
+                    {selectedRequest.user.email}
+                  </Text>
                 </View>
 
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Respostas do Formulário</Text>
+                  <Text style={styles.sectionTitle}>
+                    Respostas do Formulário
+                  </Text>
                   <View style={styles.formResponse}>
                     <Text style={styles.responseItem}>
-                      <Text style={styles.responseLabel}>Residência:</Text> {selectedRequest.formResponse.residencia}
+                      <Text style={styles.responseLabel}>Nome:</Text>{" "}
+                      {selectedRequest.formResponse.nome}
                     </Text>
                     <Text style={styles.responseItem}>
-                      <Text style={styles.responseLabel}>Outros animais:</Text> {selectedRequest.formResponse.outrosAnimais}
+                      <Text style={styles.responseLabel}>Email:</Text>{" "}
+                      {selectedRequest.formResponse.email}
                     </Text>
-                    {selectedRequest.formResponse.outrosAnimais === 'Sim' && (
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>Idade:</Text>{" "}
+                      {selectedRequest.formResponse.idade}
+                    </Text>
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>Telefone:</Text>{" "}
+                      {selectedRequest.formResponse.telefone}
+                    </Text>
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>
+                        Parentes concordam com a adoção?:
+                      </Text>{" "}
+                      {selectedRequest.formResponse.acordoAdocao}
+                    </Text>
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>
+                        Sua residência tem aréas abertas?:
+                      </Text>{" "}
+                      {selectedRequest.formResponse.areasAbertas}
+                    </Text>
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>Residência:</Text>{" "}
+                      {selectedRequest.formResponse.residencia}
+                    </Text>
+                    <Text style={styles.responseItem}>
+                      <Text style={styles.responseLabel}>Outros animais:</Text>{" "}
+                      {selectedRequest.formResponse.outrosAnimais}
+                    </Text>
+
+                    {selectedRequest.formResponse.outrosAnimais === "Sim" && (
                       <Text style={styles.responseItem}>
-                        <Text style={styles.responseLabel}>Castrados:</Text> {selectedRequest.formResponse.castrados}
+                        <Text style={styles.responseLabel}>São castrados:</Text>{" "}
+                        {selectedRequest.formResponse.castrados}
                       </Text>
                     )}
                     {/* Adicionar mais campos conforme necessário */}
@@ -201,15 +315,16 @@ const AdoptionRequestsScreen = () => {
                 </View>
 
                 <View style={styles.modalButtons}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.actionButton, styles.rejectButton]}
-                    onPress={() => console.log('Rejeitar pedido')}
+                    onPress={() => handleAdoptionStatusUpdate("REJECTED")}
                   >
                     <Text style={styles.buttonText}>Rejeitar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={[styles.actionButton, styles.approveButton]}
-                    onPress={() => console.log('Aprovar pedido')}
+                    onPress={() => handleAdoptionStatusUpdate("APPROVED")}
                   >
                     <Text style={styles.buttonText}>Aprovar</Text>
                   </TouchableOpacity>
@@ -226,24 +341,24 @@ const AdoptionRequestsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f9ff',
+    backgroundColor: "#f5f9ff",
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  contentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     paddingBottom: 10,
   },
-  headerText: {
+  ContentHeaderText: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
-    color: '#003366',
+    color: "#003366",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContent: {
     paddingHorizontal: 15,
@@ -251,30 +366,30 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 50,
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   petImage: {
@@ -282,19 +397,19 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 15,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   cardHeaderInfo: {
     flex: 1,
   },
   petName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: "bold",
+    color: "#003366",
   },
   petType: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -303,50 +418,50 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   cardBody: {
     marginTop: 10,
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 5,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginLeft: 8,
   },
   // Modal styles
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    width: '90%',
-    backgroundColor: '#fff',
+    width: "90%",
+    backgroundColor: "#fff",
     borderRadius: 15,
     padding: 20,
-    maxHeight: '80%',
+    maxHeight: "100%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: "bold",
+    color: "#003366",
   },
   petInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   modalPetImage: {
@@ -354,79 +469,101 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     marginRight: 15,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   modalPetName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: "bold",
+    color: "#003366",
   },
   modalPetType: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 5,
   },
   modalStatusBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 15,
   },
   modalStatusText: {
     fontSize: 14,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: "bold",
+    color: "#003366",
     marginBottom: 10,
   },
   detailText: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginBottom: 5,
   },
   formResponse: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: "#f8f8f8",
     borderRadius: 10,
     padding: 15,
   },
   responseItem: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginBottom: 8,
   },
   responseLabel: {
-    fontWeight: 'bold',
-    color: '#003366',
+    fontWeight: "bold",
+    color: "#003366",
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
   },
   actionButton: {
     flex: 1,
     padding: 12,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   rejectButton: {
-    backgroundColor: '#f8d7da',
+    backgroundColor: "#f8d7da",
     marginRight: 10,
   },
   approveButton: {
-    backgroundColor: '#d4edda',
+    backgroundColor: "#d4edda",
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+  },header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 48,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
   },
 });
 

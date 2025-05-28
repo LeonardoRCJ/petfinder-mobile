@@ -1,26 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import decodeJWT from '../services/decodeJWT';
 
 const AdoptionForm = () => {
   const route = useRoute();
   const { petId } = route.params;
+
+  const navigation = useNavigation();
 
   const [form, setForm] = useState({
     nome: "",
@@ -87,10 +89,20 @@ const AdoptionForm = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
+                  <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                  >
+                    <Ionicons name="arrow-back" size={24} color="#FF6B00" />
+                  </TouchableOpacity>
+                  <Text style={styles.headerTitle}>Adoções</Text>
+                  <View style={{ width: 24 }} /> 
+                </View>
+          <View style={styles.contentHeader}>
             <Ionicons name="paw-outline" size={32} color="#003366" />
             <View>
-              <Text style={styles.headerTitle}>Formulário de Adoção</Text>
-              <Text style={styles.headerSubtitle}>Preencha com seus dados</Text>
+              <Text style={styles.contentHeaderTitle}>Formulário de Adoção</Text>
+              <Text style={styles.contentHeaderSubtitle}>Preencha com seus dados</Text>
             </View>
           </View>
 
@@ -276,19 +288,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  header: {
+  contentHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 20,
     marginBottom: 30,
   },
-  headerTitle: {
+  contentHeaderTitle: {
     fontSize: 22,
     fontWeight: "bold",
     marginLeft: 15,
     color: "#003366",
   },
-  headerSubtitle: {
+  contentHeaderSubtitle: {
     fontSize: 14,
     marginLeft: 15,
     color: "#666",
@@ -393,6 +405,29 @@ const styles = StyleSheet.create({
   buttonIcon: {
     marginRight: 5,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 48,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  }
 });
 
 export default AdoptionForm;

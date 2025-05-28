@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useContext } from 'react';
 import AdoptionRequestsScreen from "./src/adminScreens/AdoptionRequestsScreen";
+import CreatePetScreen from "./src/adminScreens/CreatePetForm";
 import ViewAllPets from "./src/adminScreens/ViewAllPets";
 import ViewAllUsers from "./src/adminScreens/ViewAllUsers";
 import { AuthContext, AuthProvider } from './src/context/AuthContext';
@@ -33,6 +34,7 @@ const AppStack = () => {
        <Stack.Screen name='admin_viewUsers' component={ViewAllUsers} />
        <Stack.Screen name='AdoptionForm' component={AdoptionForm} />
        <Stack.Screen name='AdoptionsRequests' component={AdoptionRequestsScreen} />
+       <Stack.Screen name='CreateNewPet' component={CreatePetScreen} />
   </Stack.Navigator>
   );
 }
