@@ -100,7 +100,7 @@ const CreatePetScreen = ({ navigation }) => {
       }
 
       Alert.alert('Sucesso', 'Pet cadastrado com sucesso!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
+        { text: 'OK', onPress: () => navigation.navigate('ViewAllPets')}
       ]);
       
       reset();

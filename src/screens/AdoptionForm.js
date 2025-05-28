@@ -70,6 +70,7 @@ const AdoptionForm = () => {
       if (!response.ok) throw new Error("Falha ao enviar formulário");
       
       Alert.alert("Formúlario enviado com sucesso! ", response.text);
+      navigation.navigate('UserFeed')
     } catch (error) {
       Alert.alert("Erro ao enviar formulário: ", error);
     } finally {

@@ -2,17 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useContext, useEffect, useLayoutEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 
@@ -54,7 +54,7 @@ const AdminFeedScreen = () => {
     };
 
     getPets();
-  }, []);
+  }, [pets]);
 
   const filteredPets = pets.filter(
     (pet) =>
@@ -186,7 +186,7 @@ const AdminFeedScreen = () => {
                   setShowMenu(false);
                 }}>
                 <Ionicons name="paw" size={20} color="#FF6B00" />
-                <Text style={styles.menuItemText}>Cadastro</Text>
+                <Text style={styles.menuItemText}>Pets</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}

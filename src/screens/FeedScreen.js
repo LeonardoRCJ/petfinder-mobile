@@ -54,7 +54,7 @@ const FeedScreen = () => {
     };
 
     getPets();
-  }, []);
+  }, [pets]);
 
   const filteredPets = pets.filter(
     (pet) =>
